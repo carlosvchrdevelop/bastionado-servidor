@@ -20,6 +20,10 @@ COPY ./setup/config_files/login.defs /etc/login.defs
 COPY ./setup/config_files/common-auth /etc/pam.d/common-auth
 COPY ./setup/config_files/common-account /etc/pam.d/common-account
 
+# Configuraciones actualizaciones de seguridad
+COPY ./setup/config_files/20auto-upgrades /etc/apt/apt.conf.d/20auto-upgrades
+
+
 # Configuramos el antirootkit
 COPY ./setup/config_files/rkhunter.conf /etc/rkhunter.conf
 

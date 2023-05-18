@@ -7,11 +7,11 @@ Esta sección del proyecto se centra en la securización de un servidor web al q
 
 3. **Actualizaciones automáticas:** se configurará un servicio automatizado para la aplicación de parches de seguridad de forma automática para mantener el servidor lo más actualizado posible en todo momento.
 
-4. **Copias de seguridad:** se configurará un mecanismo para la realización de copias de seguridad periódicas de los datos más importantes del servidor.
+4. **Análisis activo:** se instalarán y configurarán herramientas de análisis y tratamiento de malware y rootkits.
 
-5. **Análisis activo:** se instalarán y configurarán herramientas de análisis y tratamiento de malware y rootkits.
+5. **Monitorización:** se llevará a cabo una minuciosa monitorización del estdo del sistema y de los logs emitidos por las distintas herramientas de detección de intrusiones y detección de malware y rootkits.
 
-6. **Monitorización:** se llevará a cabo una minuciosa monitorización del estdo del sistema y de los logs emitidos por las distintas herramientas de detección de intrusiones y detección de malware y rootkits.
+6. **Copias de seguridad:** se configurará un mecanismo para la realización de copias de seguridad periódicas de los datos más importantes del servidor.
 
 7. **Hardening SSH:** se alpicará una configuración segura de SSH mediante el cual se requerirá autenticación con clave pública/privada. Se cambiará el puerto por defecto para dificultar el escaneo por parte de servicios de escaneo masivos. Se configurarán politicas para evitar ataques de fuerza bruta en la autenticación por SSH. Se limitarán el número de conexiones simultáneas sobre el servidor para evitar la sobrecarga y posible caída del mismo. Se configurarán métodos de cifrado seguros y se deshabilitarán los considerados menos seguros.
 
@@ -140,3 +140,35 @@ account  required       pam_faillock.so
 
 ## 3. Actualiaciones automáticas
 Uno de los aspectos más importantes relativos a la seguridad es el de mantener nuestro sistema constántemente actualizado, especialmente cuando se trata de parches de seguridad. Por este motivo, se va automatizar la descarga e instalación de las actualizaciones de seguridad de forma desatendida. Para esta tarea se hará uso del paquete `unattended-upgrades`.
+
+Una vez instalado el paquete, se nos habilitarán varios archivos en `/etc/apt/apt.conf.d`. Concretamente, en el archivo `50unnatended-upgrades` vamos a encontrar la configuración de los paquetes que deseamos trackear de forma automática. Aquí no debemos hacer nada, ya que por defecto solo se seleccionan los relativos a las actualizaciones de seguridad.
+```bash
+Unattended-Upgrade::Allowed-Origins {
+        "${distro_id}:${distro_codename}";
+        "${distro_id}:${distro_codename}-security";
+        // Extended Security Maintenance; doesn't necessarily exist for
+        // every release and this system may not have it installed, but if
+        // available, the policy for updates is such that unattended-upgrades
+        // should also install from here by default.
+        "${distro_id}ESMApps:${distro_codename}-apps-security";
+        "${distro_id}ESM:${distro_codename}-infra-security";
+//      "${distro_id}:${distro_codename}-updates";
+//      "${distro_id}:${distro_codename}-proposed";
+//      "${distro_id}:${distro_codename}-backports";
+};
+```
+
+Además del archivo anterior, también debemos agregar la siguietne configuración al archivo `/etc/pam/pam.conf.d/20auto-upgrades`, el cual contiene la información sobre si se van a 
+```bash
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
+APT::Periodic::AutocleanInterval "7";
+APT::Periodic::Unattended-Upgrade "1"
+```
+
+La primera línea indica que deben actualizarse las listas de repositorios, la segunda línea que se deben descargar las actualizaciones, la cuarta que deben instalarse sin atención del usuario y la tercera que cada 7 días debe realizares una limpieza automática de paquetes (`autoremove`).
+
+Aunque las actualizaciones se realizan de forma automática, algunas de ellas requieren de reiniciar el servidor para poder aplicarse. No obstante, como estamos administrando un servidor web para el cual no se ha configurado ningún tipo de redundancia, delegar la tarea de reiniciar el srevidor de forma automática no se contempla. De modo que el administrador será el encargado de reiniciarlo cuando considere oportuno.
+
+## 4. Análisis activo
+En esta sección se configurarán herramientas de escaneo activas para la detección de malware y virus. Como antivirus se ha elegido ClamAV por ser una alternativa gratuita para linux y a la vez bastante popular. Como herramienta para la detección de rootkits se empleará Rootkit Hunter.
