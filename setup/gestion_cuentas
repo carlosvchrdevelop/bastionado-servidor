@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Creamos un nuevo usuario administrador
+useradd craxmin -s /bin/bash
+echo "craxmin:craxmin" | chpasswd
+usermod -aG sudo craxmin
+
+# Creamos un grupo para la gestión de los servicios web
+groupadd webadmin
+
+# Creamos un usuario para la gestión de los servicios web y lo asignamos al grupo webadmin
+useradd webuser1 -s /bin/bash -g webadmin
+echo "webuser1:webpass1234" | chpasswd
+
+# Creamos una regla ACL para permitir a los usuarios del grupo webadmin modificar los archivos de /var/www/html
+setfacl -Rm g:webadmin:rwx /var/www/html
+
+# Añadimos permisos para iniciar, parar y reiniciar el servidor web a los usuarios del grupo webadmin
+echo 'Cmnd_Alias WEBADMIN_SERVICES = /usr/sbin/service nginx start, /usr/sbin/service nginx restart,\
+ /usr/sbin/service nginx stop' > /etc/sudoers.d/webadmin-policies
+echo '%webadmin ALL=(ALL) WEBADMIN_SERVICES' >> /etc/sudoers.d/webadmin-policies
+
+# Deshabilitamos la cuenta de root
+passwd -l root

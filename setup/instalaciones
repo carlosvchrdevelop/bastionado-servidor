@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Actualizamos la lista de repositorios y los paquetes a su última versión
+apt-get update
+apt-get upgrade -y
+
+# Instalamos sudo para gestionar las políticas de privilegios de los usuarios
+apt-get install -y sudo
+
+# Instalamos el paquete ACL para crear listas de control de acceso
+apt-get install -y acl
+
+# Instalamos libpam-pwquality para creación de políticas de contraseñas seguras
+apt-get install -y libpam-pwquality
+
+# Instalamos nginx para desplegar el servicio web, openssh-server para el control remoto
+apt-get install -y nano openssh-server nginx
+
+# Evita que el servicio nginx se cierre automáticamente justo tras iniciarse
+echo "daemon off;" >> /etc/nginx/nginx.conf
+
+# Instalamos el antivirus
+apt-get install -y clamav clamav-freshclam
+
+# Instalamos el antirootkit
+apt-get install -y rkhunter

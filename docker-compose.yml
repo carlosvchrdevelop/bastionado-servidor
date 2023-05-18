@@ -1,0 +1,8 @@
+version: '3'
+services:
+  web:
+    image: chrdevelop/hardened-webserver:0.1.0
+    container_name: webserver
+    ports:
+      - "80:80"
+      - "2922:22"
