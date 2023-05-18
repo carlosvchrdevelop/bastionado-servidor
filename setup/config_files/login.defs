@@ -153,7 +153,7 @@ UMASK           022
 # HOME_MODE is used by useradd(8) and newusers(8) to set the mode for new
 # home directories.
 # If HOME_MODE is not set, the value of UMASK is used to create the mode.
-HOME_MODE       0750
+HOME_MODE       0700
 
 #
 # Password aging controls:
@@ -162,7 +162,7 @@ HOME_MODE       0750
 #       PASS_MIN_DAYS   Minimum number of days allowed between password changes.
 #       PASS_WARN_AGE   Number of days warning given before a password expires.
 #
-PASS_MAX_DAYS   99999
+PASS_MAX_DAYS   90
 PASS_MIN_DAYS   0
 PASS_WARN_AGE   7
 
@@ -296,7 +296,7 @@ ENCRYPT_METHOD SHA512
 # If only one of the MIN or MAX values is set, then this value will be used.
 # If MIN > MAX, the highest value will be used.
 #
-# SHA_CRYPT_MIN_ROUNDS 5000
+SHA_CRYPT_MIN_ROUNDS 20000
 # SHA_CRYPT_MAX_ROUNDS 5000
 
 ################# OBSOLETED BY PAM ##############

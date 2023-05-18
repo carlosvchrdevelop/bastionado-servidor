@@ -11,13 +11,11 @@ Esta sección del proyecto se centra en la securización de un servidor web al q
 
 5. **Análisis activo:** se instalarán y configurarán herramientas de análisis y tratamiento de malware y rootkits.
 
-6. **Cifrado de discos:** se realizará un cifrado del disco para proteger el filtrado de datos en caso de que un atacante consiga acceso físico al servidor.
+6. **Monitorización:** se llevará a cabo una minuciosa monitorización del estdo del sistema y de los logs emitidos por las distintas herramientas de detección de intrusiones y detección de malware y rootkits.
 
-7. **Monitorización:** se llevará a cabo una minuciosa monitorización del estdo del sistema y de los logs emitidos por las distintas herramientas de detección de intrusiones y detección de malware y rootkits.
+7. **Hardening SSH:** se alpicará una configuración segura de SSH mediante el cual se requerirá autenticación con clave pública/privada. Se cambiará el puerto por defecto para dificultar el escaneo por parte de servicios de escaneo masivos. Se configurarán politicas para evitar ataques de fuerza bruta en la autenticación por SSH. Se limitarán el número de conexiones simultáneas sobre el servidor para evitar la sobrecarga y posible caída del mismo. Se configurarán métodos de cifrado seguros y se deshabilitarán los considerados menos seguros.
 
-8. **Hardening SSH:** se alpicará una configuración segura de SSH mediante el cual se requerirá autenticación con clave pública/privada. Se cambiará el puerto por defecto para dificultar el escaneo por parte de servicios de escaneo masivos. Se configurarán politicas para evitar ataques de fuerza bruta en la autenticación por SSH. Se limitarán el número de conexiones simultáneas sobre el servidor para evitar la sobrecarga y posible caída del mismo. Se configurarán métodos de cifrado seguros y se deshabilitarán los considerados menos seguros.
-
-9. **Banners se seguridad:** se configurarán banners informativos al iniciar sesión para recordar a los usuarios de buenas prácticas para prevenir riesgos de seguridad innecesarios.
+8. **Banners se seguridad:** se configurarán banners informativos al iniciar sesión para recordar a los usuarios de buenas prácticas para prevenir riesgos de seguridad innecesarios.
 ---
 ## 1. Gestión de cuentas
 En esta sección se va a configurar un nueva cuenta de administrador, con privilegios de sudo para realizar cualquier acción en el sistema. Al mismo tiempo se deshabilitará la cuenta `root`. La motivación de esto son múltiples:
@@ -124,4 +122,21 @@ password [success=1 default=ignore] pam_unix.so sha512 rounds=200000
 ### 2.3 Bloqueo automático de cuentas
 Finalmente, como medida adicional de seguridad, vamos a establecer una política que bloquee una cuenta temporalmente de forma automática cuando detecte un número elevado de intentos de inicio de sesión incorrectos. Se establecerá un total de 15 intentos, lo cual es un número suficientemente elevado para que un usuario no sufra un bloqueo involuntario por escribir demasiadas veces mal la contraseña y, por otra parte, sigue siendo muy seguro para evitar ataques de fuerza bruta, que requerirán cientos de miles de intentos.
 
-Para establecer estas políticas, haremos uso del módulo `pam_failock`, el cual dispone de un archivo de configuración en `/etc/security/faillock.conf`. Sobre este archivo agregaremos la siguiente configuración.
+Para establecer estas políticas, haremos uso del módulo `pam_failock`. Este módulo debe ser configurado en tres sitios.
+- **Fase de preautenticación:** en esta fase se comprueba que la cuenta no se encuentre ya bloqueada. En ese caso, se impide continuar con otros métodos de autenticación. Esto debemos configurarlo en el módulo `/etc/pam.d/common-auth`, justo antes de la línea donde se encuentra el módulo `pam_unix.so`, que es el encargado de realizar la autenticación. La línea cuenta con los atributos silent, para no mostrar información que fueda facilitar la tarea a un intruso, deny=15, para bloquear la cuenta tras 15 intentos consecutivos de inicio de sesión fallidos y un unlock_time=900 para bloquear la cuenta durante 900 segundos (15 minutos).
+```bash
+auth     required       pam_faillock.so preauth silent deny=15 unlock_time=900
+```
+
+- **Fase de postautenticación:** si se pasa la fase de preautenticación, entonces se realiza el proceso de autenticación habitual (`pam_unix.so` o los que haya configurados). Si la autenticación es satisfactoria, el usuario inicia sesión normalmente. Sin embargo, si la autenticación falla, entonces entra en juego la postautenticación que registra el nuevo intento fallido y, si es necesario, bloquea la cuenta para que en la próxima autenticación, el módulo de preautenticación impida el acceso. Esta fase de postautenticación debemos indicarla en el mismo fichero de antes, justo después del proceso de autenticación (la línea que contiene el módulo `pam_unix.so`).
+```bash
+auth     [default=die]  pam_faillock.so authfail deny=15 unlock_time=900
+```
+
+- **Verifiación de cuentas:** como último paso, debemos indicar este módulo en la configuración de las cuentas. Aquí, este módulo se encargará del manejo de bloqueo de cuentas basado en los intentos de inicio de sesión fallidos. El archivo donde hay que agregar esta configuración es `/etc/pam.d/common-account`, antes de la línea de `pam_unix.so`.
+```bash
+account  required       pam_faillock.so
+```
+
+## 3. Actualiaciones automáticas
+Uno de los aspectos más importantes relativos a la seguridad es el de mantener nuestro sistema constántemente actualizado, especialmente cuando se trata de parches de seguridad. Por este motivo, se va automatizar la descarga e instalación de las actualizaciones de seguridad de forma desatendida. Para esta tarea se hará uso del paquete `unattended-upgrades`.

@@ -24,3 +24,6 @@ apt-get install -y clamav clamav-freshclam
 
 # Instalamos el antirootkit
 apt-get install -y rkhunter
+
+# Instalamos el paquete que gestiona las actualizaciones desatendidas
+apt-get install unattended-upgrades
