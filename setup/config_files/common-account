@@ -14,7 +14,7 @@
 #
 
 # faillock module
-account  required       pam_faillock.so
+account  required                       pam_faillock.so
 
 # here are the per-package modules (the "Primary" block)
 account [success=1 new_authtok_reqd=done default=ignore]        pam_unix.so

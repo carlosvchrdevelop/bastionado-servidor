@@ -19,6 +19,10 @@ COPY ./setup/config_files/pwquality.conf /etc/security/pwquality.conf
 COPY ./setup/config_files/login.defs /etc/login.defs
 COPY ./setup/config_files/common-auth /etc/pam.d/common-auth
 COPY ./setup/config_files/common-account /etc/pam.d/common-account
+COPY ./setup/config_files/faillock.conf /etc/security/faillock.conf
+# Los archivios se copian con más permisos de los necesarios, por tanto los reestablecemos
+RUN chmod 644 /etc/pam.d/common-account /etc/pam.d/common-auth /etc/login.defs \
+/etc/security/pwquality.conf /etc/security/faillock.conf
 
 # Configuraciones actualizaciones de seguridad
 COPY ./setup/config_files/20auto-upgrades /etc/apt/apt.conf.d/20auto-upgrades
