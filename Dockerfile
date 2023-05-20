@@ -37,15 +37,14 @@ COPY ./setup/config_files/sshd_config /etc/ssh/sshd_config
 # Configuramos los tips de seguridad
 COPY ./setup/config_files/motd /etc/motd
 
+# Cargamos y ejecutamos la configuración del firewall
+COPY ./setup/gestion_firewall /setup/gestion_firewall
+RUN chmod +x setup/gestion_cuentas
+RUN /setup/gestion_cuentas
+
 # Borramos los scripts temporales
 RUN rm -r /setup
 
-# Creamos una regla del firewall para permitir tráfico a SSH desde la intranet
-RUN ufw enable
-RUN ufw default deny
-RUN ufw allow 80
-RUN ufw allow 443
-RUN ufw allow from 172.16.0.0/16 to any port 20222 
 
 # Lanzamos los servicios de nginx y ssh
 CMD ["bash", "-c", "/etc/init.d/nginx start && /etc/init.d/ssh start && /etc/init.d/maldet start"]
