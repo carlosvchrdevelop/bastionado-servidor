@@ -13,9 +13,9 @@ El bastionado de este nodo tan crítico de la red se realizará llevando a cabo 
 
 5. **Monitorización:** se llevará a cabo una minuciosa monitorización del estdo del sistema y de los logs emitidos por las distintas herramientas de detección de intrusiones y detección de malware y rootkits.
 
-6. **Firewall interno:** se configurará un firewall muy básico para permitir solo el tráfico correspondiente al servicio web y al servicio SSH, bloqueando el resto de tráfico que no debería recibir este servidor.
+6. **Hardening SSH:** se alpicará una configuración segura de SSH mediante el cual se requerirá autenticación con clave pública/privada. Se cambiará el puerto por defecto para dificultar el escaneo por parte de servicios de escaneo masivos. Se configurarán politicas para evitar ataques de fuerza bruta en la autenticación por SSH. Se limitarán el número de conexiones simultáneas sobre el servidor para evitar la sobrecarga y posible caída del mismo. Se configurarán métodos de cifrado seguros y se deshabilitarán los considerados menos seguros.
 
-7. **Hardening SSH:** se alpicará una configuración segura de SSH mediante el cual se requerirá autenticación con clave pública/privada. Se cambiará el puerto por defecto para dificultar el escaneo por parte de servicios de escaneo masivos. Se configurarán politicas para evitar ataques de fuerza bruta en la autenticación por SSH. Se limitarán el número de conexiones simultáneas sobre el servidor para evitar la sobrecarga y posible caída del mismo. Se configurarán métodos de cifrado seguros y se deshabilitarán los considerados menos seguros.
+7. **Firewall interno:** se configurará un firewall muy básico para permitir solo el tráfico correspondiente al servicio web y al servicio SSH, bloqueando el resto de tráfico que no debería recibir este servidor.
 
 8. **Banners se seguridad:** se configurarán banners informativos al iniciar sesión para recordar a los usuarios de buenas prácticas para prevenir riesgos de seguridad innecesarios.
 ---
@@ -192,7 +192,7 @@ La primera línea indica que deben actualizarse las listas de repositorios, la s
 Aunque las actualizaciones se realizan de forma automática, algunas de ellas requieren de reiniciar el servidor para poder aplicarse. No obstante, como estamos administrando un servidor web para el cual no se ha configurado ningún tipo de redundancia, delegar la tarea de reiniciar el srevidor de forma automática no se contempla. De modo que el administrador será el encargado de reiniciarlo cuando considere oportuno.
 
 ## 4. Análisis activo
-En esta sección se configurarán herramientas de escaneo activas para la detección de malware y virus. Como antivirus se ha elegido ClamAV por ser una alternativa gratuita para linux y a la vez bastante popular. Como herramienta para la detección de rootkits se empleará Rootkit Hunter.
+En esta sección se configurarán herramientas de escaneo activas para la detección de malware y virus. Como antivirus se ha elegido ClamAV por ser una alternativa gratuita para linux y a la vez bastante popular. Como herramienta para la detección de rootkits se empleará Rootkit Hunter. Continuará...
 
 ## 5. Monitorización
 En desarrollo...
