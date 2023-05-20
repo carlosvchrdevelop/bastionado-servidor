@@ -1,5 +1,7 @@
 # Bastionado de servidor Web/SSH
-Esta sección del proyecto se centra en la securización de un servidor web al que se puede acceder de forma remota. El bastionado de este nodo tan crítico de la red se realizará llevando a cabo una serie de pasos que se describen a continuación y que se desarrollan más adelante.
+Esta sección del proyecto se centra en la securización de un servidor web al que se puede acceder de forma remota por SSH a través del puerto 20222. También dispone de una página web desplegada en un servicio que corre en el puerto 80 al que se puede accede a través de un navegador web.
+
+El bastionado de este nodo tan crítico de la red se realizará llevando a cabo una serie de pasos que se describen a continuación y que se desarrollan más adelante.
 
 1. **Gestión de cuentas:** se crearán cuentas específicas para la administración del servidor web con privilegios limitados mediante políticas de sudo y ACLs. Se creará un usuario administrador y se deshabilitará la cuenta root, para evitar ataques de fuerza bruta sobre este conocido y sensible usuario.
 
@@ -191,3 +193,47 @@ Aunque las actualizaciones se realizan de forma automática, algunas de ellas re
 
 ## 4. Análisis activo
 En esta sección se configurarán herramientas de escaneo activas para la detección de malware y virus. Como antivirus se ha elegido ClamAV por ser una alternativa gratuita para linux y a la vez bastante popular. Como herramienta para la detección de rootkits se empleará Rootkit Hunter.
+
+## 5. Monitorización
+En desarrollo...
+
+## 6. Copias de seguridad
+En desarrollo...
+
+## 7. Hardening SSH
+Para proveer acceso remoto al servidor, se va a hacer uso del servidor `openssh`. Por defecto, este servidor ofrece unas políticas no demasiado seguras, por lo que se va a realizar una configuración del servicio para garantizar una mayor seguridad.
+
+```bash
+Para realizar la configuración del servicio, se modificará el archivo `/etc/ssh/sshd_config`. Sobre este archivo realizaremos los siguientes cambios.
+
+# Cambiaremos el puerto por defecto (22) por otro puerto poco conocido. Esto
+# dificultará a los bots de la red, así como a otros atacantes, detectar la 
+# existencia de nuestro servicio SSH y que intenten explotarlo. Este cambio lo 
+# realizamos en la siguiente línea del archivo.
+Port 20222
+
+# Inhabilitamos el acceso con root (aunque esta cuenta ya esté deshabilitada).
+PermitRootLogin no
+
+# Limitamos los intentos de inicio de sesión a 3 antes de que el servidor cierre
+# la conexión. Tras ello, el usuario deberá establecer nuevamente la conexión.
+# Recordar que tras 15 intentos, la cuenta se bloqueará (faillock).
+MaxAuthTries 3
+
+# Limitamos el número máximo de conexiones simultáneas en el servidor a 5 para
+# evitar una posible sobrecarga del mismo.
+MaxSessions 5
+
+```
+**Todo**: falta agregar la autenticación de doble factor y algunas configuraciones más. Continuará...
+
+## 8. Banners se seguridad
+Se conoce que dentro de la cadena de seguridad informática, el usuario suele ser el eslabón más débil, debido generalmente a su desconocimiento y falta de preparación. Para tratar de mitigar en cierta medida este hecho, resulta de interés mostrar al usuario algunos tips de buenas prácticas a la hora de trabajar con un sistema informático.
+
+Para mostrar estos tips de seguridad, vamos a hacer uso del archivo `/etc/motd`, el cual no existirá por defecto, pero lo podemos crear y su contenido se mostrará cada vez que el usuario inicie sesión de forma remota. Como este servidor será accedido esencialemente para la gestión del servicio web de forma remota, los tips irán dirigidos al engargado de gestionar el servicio web. Los tips que se mostrarán serán:
+
+1. Si abandonas momentáneamente tu puesto de trabajo, no olvides bloquear la sesión.
+2. No debes compartir con nadie la contraseña de acceso y debes cambiarla con frecuencia, o inmediatamente si tienes la sospecha de que ha sido filtrada.
+3. No debes descargar nada ni acceder a la red para realizar consultas desde este servidor.
+4. Si detectas cualquier anomalía en el sistema, contacta inmediatamente con el administrador.
+5. Si sospechas que tu equipo ha podido ser infectado con un virus, no trates de conectarte a la red ni acceder al servidor y contacta inmediatamente con el administrador.

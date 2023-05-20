@@ -34,6 +34,9 @@ COPY ./setup/config_files/rkhunter.conf /etc/rkhunter.conf
 # Configuraciones servidor SSH
 COPY ./setup/config_files/sshd_config /etc/ssh/sshd_config
 
+# Configuramos los tips de seguridad
+COPY ./setup/config_files/motd /etc/motd
+
 # Borramos los scripts temporales
 RUN rm -r /setup
 
