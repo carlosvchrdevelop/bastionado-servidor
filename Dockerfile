@@ -40,10 +40,9 @@ COPY ./setup/config_files/sshd_config /etc/ssh/sshd_config
 # Configuramos los tips de seguridad
 COPY ./setup/config_files/sshd-banner /etc/ssh/sshd-banner
 
-# Cargamos y ejecutamos la configuración del firewall
-#COPY ./setup/gestion_firewall /setup/gestion_firewall
-#RUN chmod +x setup/gestion_firewall
-#RUN /setup/gestion_firewall
+# Configuramos los TCP Wrappers
+RUN echo "SSHD: ALL" >> /etc/hosts.deny
+RUN echo "SSHD: 172.16.0.0/12" >> /etc/hosts.allow
 
 # Borramos los scripts temporales
 RUN rm -r /setup

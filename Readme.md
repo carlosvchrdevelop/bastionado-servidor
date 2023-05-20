@@ -15,7 +15,7 @@ El bastionado de este nodo tan crítico de la red se realizará llevando a cabo 
 
 6. **Hardening SSH:** se aplicará una configuración segura de SSH mediante el cual se requerirá autenticación con clave pública/privada. Se cambiará el puerto por defecto para dificultar el escaneo por parte de servicios de escaneo masivos. Se configurarán políticas para evitar ataques de fuerza bruta en la autenticación por SSH. Se limitarán el número de conexiones simultáneas sobre el servidor para evitar la sobrecarga y posible caída del mismo. Se configurarán métodos de cifrado seguros y se deshabilitarán los considerados menos seguros.
 
-7. **Firewall interno del servidor:** se configurará un firewall muy básico para permitir solo el tráfico correspondiente al servicio web y al servicio SSH, bloqueando el resto de tráfico que no debería recibir este servidor.
+7. **TCP Wrappers:** se configurarán listas de acceso para bloquear las conexiones remotas al servidor a equipos externos a la intranet para obligar a los usuarios a conectarse físicamente o a través de una VPN, aportando un nivel extra de seguridad.
 
 8. **Banners d e seguridad:** se configurarán banners informativos al iniciar sesión para recordar a los usuarios de buenas prácticas para prevenir riesgos de seguridad innecesarios.
 ---
@@ -323,17 +323,23 @@ Banner /etc/ssh/sshd-banner
 ```
 Esta parte es compleja de automatizar en Docker debido a la necesidad de tener que generar las claves públicas en los clientes que tendrán acceso al servicio SSH. Por este motivo, para el despliegue se dejará habilitada la opción de autenticación con usuario y contraseña y, una vez generadas y copiadas las claves públicas al servidor, se deberá desactivar esta opción, tal y como se muestra en el ejemplo anterior.
 
-## 7. Firewall interno del servidor
-Por último, y a pesar de que en la topología donde se implanta este servidor ya existe un firewall dedicado que bloquea todas las conexiones indeseadas, se va a agregar una pequeña regla de firewall para bloquear todo el tráfico entrante al servicio SSH que no pertenezca a la intranet. De este modo obligamos a que un usuario deba conectarse desde dentro de la red, o a través de una VPN, aumentando la seguridad. Para ello, usaremos el firewall UFW.
+## 7. TCP Wrappers
+Por último, y a pesar de que en la topología donde se implanta este servidor ya existe un firewall dedicado que bloquea todas las conexiones indeseadas, se van a implementar listas de acceso de al servidor SSH para permitir la conexión únicamente a equipos que se conecten desde dentro de la red interna. Esto conlleva que un usuario deba estar conectado físicamente en la red de la compañía o a través de una VPN, agregando una capa más de seguridad.
 
-En resumen, se bloqueará todo el tráfico excepto el dirigido al servicio web (desde cualquier origen) y el dirigido al servicio SSH desde la intranet.
+Para agregar estas listas debemos configurar los archivos `/etc/hosts.allow` y `/etc/hosts.deny`. El primero de ellos establece una lista blanca que solo permite la conexión a los equipos definidos en ella. El segundo archivo hace justo lo contrario, bloquea el acceso a todos los equipos que estén incluidos en dicha lista.
 
+El funcionamiento de los TCP Wrappers es sencillo, primero se mira el archivo `hosts.allow`, si se encuentra el host, se permite el acceso. Si no se encuentra el host, entonces se comprueba la lista negra `hosts.deny`. Si se encuentra en la lista negra, se le deniega el acceso, si no, se le concede acceso.
+
+Dicho esto, denegaremos a todos los hosts en la lista negra y en la lista blanca daremos acceso únicamente a los equipos de la intranet (172.16-32.0.0).
+
+**/etc/hosts.deny**
 ```bash
-sudo ufw enable
-sudo ufw default deny
-sudo ufw allow 80
-sudo ufw allow 443
-sudo ufw allow from 172.16.0.0/16 to any port 20222 
+SSHD: ALL
+```
+
+**/etc/hosts.allow**
+```bash
+SSHD: 172.16.0.0/12
 ```
 
 ## 8. Banners de seguridad
