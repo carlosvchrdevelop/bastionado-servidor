@@ -232,6 +232,7 @@ X11Forwarding no
 # pública/privada, que es más seguro (previa copia de las claves del cliente al
 # servidor).
 PasswordAuthentication no
+PubkeyAuthentication yes
 
 # Desactivamos túneles SSH que no necesitamos
 AllowAgentForwarding no
@@ -242,11 +243,15 @@ GatewayPorts no
 # Evitamos dar información sobre el último login.
 PrintLastLog no
 
+# Evitamos que el servidor envíe peticiones KeepAlive para mantener las sesiones
+# activas. Esto puede ayudar ligreamente a prevenir algunos intentos de spoofing.
+TCPKeepAlive no
+
 # Activamos la visualización del motd que habíamos configurado para mostrar las 
 # advertencias de seguridad.
 PrintMotd yes
 ```
-Continúa en desarrollo...
+Esta parte es compleja de automatizar en Docker debido a la necesidad de tener que generar las claves públicas en los clientes que tendrán acceso al servicio SSH. Por este motivo, para el despliegue se dejará habilitada la opción de autenticación con usuario y contraseña y, una vez generadas y copiadas las claves públicas al servidor, se deberá desactivar esta opción, tal y como se muestra en el ejemplo anterior.
 
 ## 7. Firewall interno
 Por último, y a pesar de que en la topología donde se implanta este servidor ya existe un firewall dedicado que bloquea todas las conexiones indeseadas, se va a agregar una pequeña regla de firewall para bloquear todo el tráfico entrante al servicio SSH que no pertenezca a la intranet. De este modo obligamos a que un usuario deba conectarse desde dentro de la red, o a través de una VPN, aumentando la seguridad. Para ello, usaremos el firewall UFW.
