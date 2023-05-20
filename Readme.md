@@ -1,5 +1,5 @@
 # Bastionado de servidor Web/SSH
-Esta sección del proyecto se centra en la securización de un servidor web al que se puede acceder de forma remota por SSH a través del puerto 20222. También dispone de una página web desplegada en un servicio que corre en el puerto 80 al que se puede accede a través de un navegador web.
+Esta sección del proyecto se centra en la securización de un servidor web que dispone de una página accesible desde cualquier navegador web y al que se puede acceder de forma remota por SSH, a través del puerto 20222, para su gestión y mantenimiento.
 
 El bastionado de este nodo tan crítico de la red se realizará llevando a cabo una serie de pasos que se describen a continuación y que se desarrollan más adelante.
 
