@@ -13,7 +13,7 @@ El bastionado de este nodo tan crítico de la red se realizará llevando a cabo 
 
 5. **Monitorización:** se llevará a cabo una minuciosa monitorización del estdo del sistema y de los logs emitidos por las distintas herramientas de detección de intrusiones y detección de malware y rootkits.
 
-6. **Copias de seguridad:** se configurará un mecanismo para la realización de copias de seguridad periódicas de los datos más importantes del servidor.
+6. **Firewall interno:** se configurará un firewall muy básico para permitir solo el tráfico correspondiente al servicio web y al servicio SSH, bloqueando el resto de tráfico que no debería recibir este servidor.
 
 7. **Hardening SSH:** se alpicará una configuración segura de SSH mediante el cual se requerirá autenticación con clave pública/privada. Se cambiará el puerto por defecto para dificultar el escaneo por parte de servicios de escaneo masivos. Se configurarán politicas para evitar ataques de fuerza bruta en la autenticación por SSH. Se limitarán el número de conexiones simultáneas sobre el servidor para evitar la sobrecarga y posible caída del mismo. Se configurarán métodos de cifrado seguros y se deshabilitarán los considerados menos seguros.
 
@@ -197,11 +197,10 @@ En esta sección se configurarán herramientas de escaneo activas para la detecc
 ## 5. Monitorización
 En desarrollo...
 
-## 6. Copias de seguridad
-En desarrollo...
-
-## 7. Hardening SSH
+## 6. Hardening SSH
 Para proveer acceso remoto al servidor, se va a hacer uso del servidor `openssh`. Por defecto, este servidor ofrece unas políticas no demasiado seguras, por lo que se va a realizar una configuración del servicio para garantizar una mayor seguridad.
+
+Entre otras cosas, las medidas que se van a aplicar van a ser la de cambiar el puerto por defecto, activar la autenticación únicamente con clave pública, prohibir el acceso root directamente, limitar el número de sesiones simultáneas y deeshabilitar todos las características que no necesitamos.
 
 ```bash
 Para realizar la configuración del servicio, se modificará el archivo `/etc/ssh/sshd_config`. Sobre este archivo realizaremos los siguientes cambios.
@@ -213,6 +212,7 @@ Para realizar la configuración del servicio, se modificará el archivo `/etc/ss
 Port 20222
 
 # Inhabilitamos el acceso con root (aunque esta cuenta ya esté deshabilitada).
+# Para tareas de admistración conectarse con usuario sin privilegios y luego sudo.
 PermitRootLogin no
 
 # Limitamos los intentos de inicio de sesión a 3 antes de que el servidor cierre
@@ -224,8 +224,40 @@ MaxAuthTries 3
 # evitar una posible sobrecarga del mismo.
 MaxSessions 5
 
+# Desactivamos las redirecciones de entorno gráfico
+X11Forwarding no
+
+# Desactivamos el acceso por usuario/clave, solo permitiremos el acceso por clave
+# pública/privada, que es más seguro (previa copia de las claves del cliente al
+# servidor).
+PasswordAuthentication no
+
+# Desactivamos túneles SSH que no necesitamos
+AllowAgentForwarding no
+PermitTunnel no
+AllowTcpForwarding no
+GatewayPorts no
+
+# Evitamos dar información sobre el último login.
+PrintLastLog no
+
+# Activamos la visualización del motd que habíamos configurado para mostrar las 
+# advertencias de seguridad.
+PrintMotd yes
 ```
-**Todo**: falta agregar la autenticación de doble factor y algunas configuraciones más. Continuará...
+
+## 7. Firewall básico
+Por último, y a pesar de que en la topología donde se implanta este servidor ya existe un firewall dedicado que bloquea todas las conexiones indeseadas, se va a agregar una pequeña regla de firewall para bloquear todo el tráfico entrante al servicio SSH que no pertenezca a la intranet. De este modo obligamos a que un usuario deba conectarse desde dentro de la red, o a través de una VPN, aumentando la seguridad. Para ello, usaremos el firewall de UFW.
+
+En resument, se bloqueará todo el tráfico excepto el dirigido al servicio web (desde cualquier origen) y el dirigido al servicio SSH desde la intranet.
+
+```bash
+sudo ufw enable
+sudo ufw default deny
+sudo ufw allow 80
+sudo ufw allow 443
+sudo ufw allow from 172.16.0.0/16 to any port 20222 
+```
 
 ## 8. Banners se seguridad
 Se conoce que dentro de la cadena de seguridad informática, el usuario suele ser el eslabón más débil, debido generalmente a su desconocimiento y falta de preparación. Para tratar de mitigar en cierta medida este hecho, resulta de interés mostrar al usuario algunos tips de buenas prácticas a la hora de trabajar con un sistema informático.

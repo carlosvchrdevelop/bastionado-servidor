@@ -27,3 +27,6 @@ apt-get install -y clamav clamav-freshclam
 
 # Instalamos el paquete que gestiona las actualizaciones desatendidas
 apt-get install -y unattended-upgrades
+
+# Instalamos el firewall UFW
+apt-get install -y ufw
