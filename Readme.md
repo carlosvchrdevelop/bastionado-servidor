@@ -192,19 +192,20 @@ La primera línea indica que deben actualizarse las listas de repositorios, la s
 Aunque las actualizaciones se realizan de forma automática, algunas de ellas requieren de reiniciar el servidor para poder aplicarse. No obstante, como estamos administrando un servidor web para el cual no se ha configurado ningún tipo de redundancia, delegar la tarea de reiniciar el srevidor de forma automática no se contempla. De modo que el administrador será el encargado de reiniciarlo cuando considere oportuno.
 
 ## 4. Análisis activo
-En esta sección se configurarán herramientas de escaneo activas para la detección de malware y virus. Como antivirus se ha elegido ClamAV por ser una alternativa gratuita para linux y a la vez bastante popular. Como herramienta para la detección de rootkits se empleará Rootkit Hunter. Continuará...
+En esta sección se configurarán herramientas de escaneo activas para la detección de malware y virus. Como antivirus se ha elegido ClamAV por ser una alternativa gratuita para linux y a la vez bastante popular. Como herramienta para la detección de rootkits se empleará Rootkit Hunter.
+
+Continúa en desarrollo...
 
 ## 5. Monitorización
-En desarrollo...
+Próximamente...
 
 ## 6. Hardening SSH
 Para proveer acceso remoto al servidor, se va a hacer uso del servidor `openssh`. Por defecto, este servidor ofrece unas políticas no demasiado seguras, por lo que se va a realizar una configuración del servicio para garantizar una mayor seguridad.
 
 Entre otras cosas, las medidas que se van a aplicar van a ser la de cambiar el puerto por defecto, activar la autenticación únicamente con clave pública, prohibir el acceso root directamente, limitar el número de sesiones simultáneas y deeshabilitar todos las características que no necesitamos.
 
-```bash
 Para realizar la configuración del servicio, se modificará el archivo `/etc/ssh/sshd_config`. Sobre este archivo realizaremos los siguientes cambios.
-
+```bash
 # Cambiaremos el puerto por defecto (22) por otro puerto poco conocido. Esto
 # dificultará a los bots de la red, así como a otros atacantes, detectar la 
 # existencia de nuestro servicio SSH y que intenten explotarlo. Este cambio lo 
@@ -245,9 +246,10 @@ PrintLastLog no
 # advertencias de seguridad.
 PrintMotd yes
 ```
+Continúa en desarrollo...
 
-## 7. Firewall básico
-Por último, y a pesar de que en la topología donde se implanta este servidor ya existe un firewall dedicado que bloquea todas las conexiones indeseadas, se va a agregar una pequeña regla de firewall para bloquear todo el tráfico entrante al servicio SSH que no pertenezca a la intranet. De este modo obligamos a que un usuario deba conectarse desde dentro de la red, o a través de una VPN, aumentando la seguridad. Para ello, usaremos el firewall de UFW.
+## 7. Firewall interno
+Por último, y a pesar de que en la topología donde se implanta este servidor ya existe un firewall dedicado que bloquea todas las conexiones indeseadas, se va a agregar una pequeña regla de firewall para bloquear todo el tráfico entrante al servicio SSH que no pertenezca a la intranet. De este modo obligamos a que un usuario deba conectarse desde dentro de la red, o a través de una VPN, aumentando la seguridad. Para ello, usaremos el firewall UFW.
 
 En resument, se bloqueará todo el tráfico excepto el dirigido al servicio web (desde cualquier origen) y el dirigido al servicio SSH desde la intranet.
 
