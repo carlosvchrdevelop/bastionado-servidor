@@ -196,6 +196,75 @@ Aunque las actualizaciones se realizan de forma automática, algunas de ellas re
 ## 4. Análisis activo
 En esta sección se configurarán herramientas de escaneo activas para la detección de malware y virus. Como antivirus se ha elegido ClamAV por ser una alternativa gratuita para linux y a la vez bastante popular. Como herramienta para la detección de rootkits se empleará Rootkit Hunter.
 
+### 4.1 ClamAV
+Para la configuración del antivirus ClamAV, se aplicará una configuración automática de los demonios freshclam, encargado de mantener la base de datos de virus actualizada y clamav, encargado del análisis automático del sistema. Para configurar estos demonios se ha empleado dpkg-reconfigure.
+```bash
+sudo dkpg-reconfigure clamav-freshclam
+sudo dkpg-reconfigure clamav-daemon
+```
+
+Estos comandos modifican automáticamente la configuración de los archivos `/etc/clamav/fresclam.conf` y `/etc/clamav/clamd.conf`. Algunos de los parámetros configurados (se muestra el contenido de los archivos de configuración) han sido los siguientes.
+#### **Parámetros principales configurados en freshclam**
+```bash
+# Ubicación de los archivos de log
+UpdateLogFile /var/log/clamav/freshclam.log
+
+# Activamos la rotación de logs para evitar ficheros demasiado grandes
+LogRotate true
+
+# Incluimos el registro de la hora en los eventos de log
+LogTime true
+
+# Establecemos el directorio donde se guardarán las bases de datos de firmas de virus
+DatabaseDirectory /var/lib/clamav
+
+# Esta opción permite acelerar el análisis de archivos
+Bytecode true
+
+# Las comprobaciones de actualizaciones se realizan 24 veces al día
+Checks 24
+
+# Establecemos un mirror de españa para tener mejor conectividad
+DatabaseMirror db.es.clamav.net
+```
+
+#### **Parámetros principales configurados en clamd**
+```bash
+# Establecemos un socket local con permisos abiertos
+LocalSocket /var/run/clamav/clamd.ctl
+LocalSocketGroup clamav
+LocalSocketMode 666
+
+# usuario que se usará para el análisis
+User clamav
+
+# Activamos la rotación de logs
+LogRotate true
+
+# Definimos dónde se encuentra la base de datos de firmas de virus
+DatabaseDirectory /var/lib/clamav
+
+# Establecemos un checkeo de integridad cada hora para que ClamAV compruebe
+# sus componentes y bases de datos de firmas.
+SelfCheck 3600
+
+# Establecemos algunos límites de escaneo
+MaxScanTime 120000
+MaxScanSize 100M
+MaxFileSize 25M
+MaxRecursion 16
+MaxFiles 10000
+
+# Especificamos dónde se alamacenarán los logs y registraremos la hora de suceso
+LogFile /var/log/clamav/clamav.log
+LogTime true
+
+# Activamos el bytecode para mejorar el rendimiento
+Bytecode true
+BytecodeSecurity TrustSigned
+BytecodeTimeout 60000
+```
+
 Continúa en desarrollo...
 
 ## 5. Monitorización

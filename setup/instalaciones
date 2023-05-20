@@ -20,7 +20,7 @@ apt-get install -y nano openssh-server nginx
 echo "daemon off;" >> /etc/nginx/nginx.conf
 
 # Instalamos el antivirus
-apt-get install -y clamav clamav-freshclam
+apt-get install -y clamav clamav-freshclam clamav-daemon
 
 # Instalamos el antirootkit
 # apt-get install -y rkhunter

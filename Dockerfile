@@ -27,6 +27,10 @@ RUN chmod 644 /etc/pam.d/common-account /etc/pam.d/common-auth /etc/login.defs \
 # Configuraciones actualizaciones de seguridad
 COPY ./setup/config_files/20auto-upgrades /etc/apt/apt.conf.d/20auto-upgrades
 
+# Configuramos el antivirus
+COPY ./setup/config_files/freshclam.conf /etc/clamav/freshclam.conf
+COPY ./setup/config_files/clamd.conf /etc/clamav/clamd.conf
+
 # Configuramos el antirootkit
 COPY ./setup/config_files/rkhunter.conf /etc/rkhunter.conf
 
@@ -37,12 +41,15 @@ COPY ./setup/config_files/sshd_config /etc/ssh/sshd_config
 COPY ./setup/config_files/motd /etc/motd
 
 # Cargamos y ejecutamos la configuración del firewall
-COPY ./setup/gestion_firewall /setup/gestion_firewall
-RUN chmod +x setup/gestion_cuentas
-RUN /setup/gestion_cuentas
+#COPY ./setup/gestion_firewall /setup/gestion_firewall
+#RUN chmod +x setup/gestion_firewall
+#RUN /setup/gestion_firewall
 
 # Borramos los scripts temporales
 RUN rm -r /setup
 
-# Lanzamos los servicios de nginx y ssh
-CMD ["bash", "-c", "/etc/init.d/ssh start && /etc/init.d/nginx start"]
+# Lanzamos los servicios (dejar nginx el último)
+CMD ["bash", "-c", "/etc/init.d/ssh start && \
+    /etc/init.d/clamav-freshclam start && \
+    /etc/init.d/clamav-daemon start && \
+    /etc/init.d/nginx start"]
