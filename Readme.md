@@ -317,9 +317,9 @@ PrintLastLog no
 # activas. Esto puede ayudar ligeramente a prevenir algunos intentos de spoofing.
 TCPKeepAlive no
 
-# Activamos la visualización del motd que habíamos configurado para mostrar las 
-# advertencias de seguridad.
-PrintMotd yes
+# Activamos la visualización del banners de seguridad. Este banner se creará más
+# adelante, pero podemos ir definiendo ya la ruta donde lo ubicaremos.
+Banner /etc/ssh/sshd-banner
 ```
 Esta parte es compleja de automatizar en Docker debido a la necesidad de tener que generar las claves públicas en los clientes que tendrán acceso al servicio SSH. Por este motivo, para el despliegue se dejará habilitada la opción de autenticación con usuario y contraseña y, una vez generadas y copiadas las claves públicas al servidor, se deberá desactivar esta opción, tal y como se muestra en el ejemplo anterior.
 
@@ -339,7 +339,7 @@ sudo ufw allow from 172.16.0.0/16 to any port 20222
 ## 8. Banners de seguridad
 Se conoce que dentro de la cadena de seguridad informática, el usuario suele ser el eslabón más débil, debido generalmente a su desconocimiento y falta de preparación. Para tratar de mitigar en cierta medida este hecho, resulta de interés mostrar al usuario algunos tips de buenas prácticas a la hora de trabajar con un sistema informático.
 
-Para mostrar estos tips de seguridad, vamos a hacer uso del archivo `/etc/motd`, el cual no existirá por defecto, pero lo podemos crear y su contenido se mostrará cada vez que el usuario inicie sesión de forma remota. Como este servidor será accedido esencialmente para la gestión del servicio web de forma remota, los tips irán dirigidos al encargado de gestionar el servicio web. Los tips que se mostrarán serán:
+Para mostrar estos tips de seguridad, vamos a hacer uso del archivo `/etc/ssh/sshd-banner`, el cual no existirá por defecto, pero lo podemos crear y su contenido se mostrará cada vez que el usuario inicie sesión de forma remota. Como este servidor será accedido esencialmente para la gestión del servicio web de forma remota, los tips irán dirigidos al encargado de gestionar el servicio web. Los tips que se mostrarán serán:
 
 1. Si abandonas momentáneamente tu puesto de trabajo, no olvides bloquear la sesión.
 2. No compartas con nadie la contraseña de acceso y cámbiala con frecuencia, o inmediatamente si tienes la sospecha de que ha sido filtrada.

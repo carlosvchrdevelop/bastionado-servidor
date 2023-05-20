@@ -38,7 +38,7 @@ COPY ./setup/config_files/rkhunter.conf /etc/rkhunter.conf
 COPY ./setup/config_files/sshd_config /etc/ssh/sshd_config
 
 # Configuramos los tips de seguridad
-COPY ./setup/config_files/motd /etc/motd
+COPY ./setup/config_files/sshd-banner /etc/ssh/sshd-banner
 
 # Cargamos y ejecutamos la configuración del firewall
 #COPY ./setup/gestion_firewall /setup/gestion_firewall

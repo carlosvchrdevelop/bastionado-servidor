@@ -91,7 +91,7 @@ X11Forwarding no
 #X11DisplayOffset 10
 #X11UseLocalhost yes
 #PermitTTY yes
-PrintMotd yes
+#PrintMotd no
 PrintLastLog no
 TCPKeepAlive no
 #PermitUserEnvironment no
@@ -106,7 +106,7 @@ PermitTunnel no
 #VersionAddendum none
 
 # no default banner path
-#Banner none
+Banner /etc/ssh/sshd-banner
 
 # Allow client to pass locale environment variables
 AcceptEnv LANG LC_*
