@@ -11,13 +11,13 @@ El bastionado de este nodo tan crítico de la red se realizará llevando a cabo 
 
 4. **Análisis activo:** se instalarán y configurarán herramientas de análisis y tratamiento de malware y rootkits.
 
-5. **Monitorización:** se llevará a cabo una minuciosa monitorización del estdo del sistema y de los logs emitidos por las distintas herramientas de detección de intrusiones y detección de malware y rootkits.
+5. **Monitorización:** se llevará a cabo una minuciosa monitorización del estado del sistema y de los logs emitidos por las distintas herramientas de detección de intrusiones y detección de malware y rootkits.
 
-6. **Hardening SSH:** se alpicará una configuración segura de SSH mediante el cual se requerirá autenticación con clave pública/privada. Se cambiará el puerto por defecto para dificultar el escaneo por parte de servicios de escaneo masivos. Se configurarán politicas para evitar ataques de fuerza bruta en la autenticación por SSH. Se limitarán el número de conexiones simultáneas sobre el servidor para evitar la sobrecarga y posible caída del mismo. Se configurarán métodos de cifrado seguros y se deshabilitarán los considerados menos seguros.
+6. **Hardening SSH:** se aplicará una configuración segura de SSH mediante el cual se requerirá autenticación con clave pública/privada. Se cambiará el puerto por defecto para dificultar el escaneo por parte de servicios de escaneo masivos. Se configurarán políticas para evitar ataques de fuerza bruta en la autenticación por SSH. Se limitarán el número de conexiones simultáneas sobre el servidor para evitar la sobrecarga y posible caída del mismo. Se configurarán métodos de cifrado seguros y se deshabilitarán los considerados menos seguros.
 
-7. **Firewall interno:** se configurará un firewall muy básico para permitir solo el tráfico correspondiente al servicio web y al servicio SSH, bloqueando el resto de tráfico que no debería recibir este servidor.
+7. **Firewall interno del servidor:** se configurará un firewall muy básico para permitir solo el tráfico correspondiente al servicio web y al servicio SSH, bloqueando el resto de tráfico que no debería recibir este servidor.
 
-8. **Banners se seguridad:** se configurarán banners informativos al iniciar sesión para recordar a los usuarios de buenas prácticas para prevenir riesgos de seguridad innecesarios.
+8. **Banners d e seguridad:** se configurarán banners informativos al iniciar sesión para recordar a los usuarios de buenas prácticas para prevenir riesgos de seguridad innecesarios.
 ---
 ## 1. Gestión de cuentas
 En esta sección se va a configurar un nueva cuenta de administrador, con privilegios de sudo para realizar cualquier acción en el sistema. Al mismo tiempo se deshabilitará la cuenta `root`. La motivación de esto son múltiples:
@@ -125,7 +125,8 @@ password [success=1 default=ignore] pam_unix.so sha512 rounds=200000
 Finalmente, como medida adicional de seguridad, vamos a establecer una política que bloquee una cuenta temporalmente de forma automática cuando detecte un número elevado de intentos de inicio de sesión incorrectos. Se establecerá un total de 15 intentos, lo cual es un número suficientemente elevado para que un usuario no sufra un bloqueo involuntario por escribir varias veces mal la contraseña y, por otra parte, sigue siendo muy seguro para evitar ataques de fuerza bruta y de diccionario, que requerirán cientos de miles de intentos.
 
 Para establecer estas políticas, haremos uso del módulo `pam_failock`. Este módulo debe ser configurado en tres sitios. 
-- **Configuración del faillock:** El primero de ellos es el archivo de configurción del propio módulo, donde indicaremos, entre otras cosas, el número máximo de intentos de inicio de sesión consecutivos y el tiempo de bloqueo. Este archivo se ubica en la ruta `/etc/security/faillock.conf`.
+
+**Configuración del faillock:** El primero de ellos es el archivo de configuración del propio módulo, donde indicaremos, entre otras cosas, el número máximo de intentos de inicio de sesión consecutivos y el tiempo de bloqueo. Este archivo se ubica en la ruta `/etc/security/faillock.conf`.
 ```bash
 # Activamos la auditoría de usuarios que intentan autenticarse.
 audit
@@ -147,20 +148,21 @@ fail_interval = 900
 # Tiempo que permanecerá bloqueada la cuenta 600 segundos (10 minutos)
 unlock_time = 600
 ```
-- **Fase de autenticación:** el proceso de autenticación se gestiona desde el archivo `/etc/pam.d/common-auth`. En este archivo encontraremos una línea que carga el módulo `pam_unix.so`, que es el encargado de la autenticación como tal. Deberemos configurar el módulo faillock tanto antes (preautenticación) como después (postautenticación) del módulo `pam_unix.so`. La preautenticación comprobará si la cuenta a la que se intenta iniciar sesión se encuentra ya bloqueada, en ese caso no iniciará ningún proceso de autenticación posterior, denegando automáticamente el acceso. Tras pasar la fase de preautenticación, si no se ha bloqueado, entonces comienza la autenticación en el módulo `pam_unix.so`. Si la autenticación es satisfactoria, se inica sesión normalmente, en otro caso, actúa el módulo de postautenticación, incrementando el contador de inicios de sesión incorrectos y bloqueando la cuenta en caso necesario. Debemos modificar la línea `pam_unix.so`como se ve en el siguiente ejemplo y agregar las líneas del módulo faillock antes y después, tal y como se ve en el ejemplo.
+
+**Fase de autenticación:** el proceso de autenticación se gestiona desde el archivo `/etc/pam.d/common-auth`. En este archivo encontraremos una línea que carga el módulo `pam_unix.so`, que es el encargado de la autenticación como tal. Deberemos configurar el módulo faillock tanto antes (preautenticación) como después (postautenticación) del módulo `pam_unix.so`. La preautenticación comprobará si la cuenta a la que se intenta iniciar sesión se encuentra ya bloqueada, en ese caso no iniciará ningún proceso de autenticación posterior, denegando automáticamente el acceso. Tras pasar la fase de preautenticación, si no se ha bloqueado, entonces comienza la autenticación en el módulo `pam_unix.so`. Si la autenticación es satisfactoria, se inica sesión normalmente, en otro caso, actúa el módulo de postautenticación, incrementando el contador de inicios de sesión incorrectos y bloqueando la cuenta en caso necesario. Debemos modificar la línea `pam_unix.so` como se ve en el siguiente ejemplo y agregar las líneas del módulo faillock antes y después, tal y como se ve en el ejemplo.
 ```bash
 auth    required                        pam_faillock.so preauth
 auth    sufficient                      pam_unix.so
 auth    [default=die]                   pam_faillock.so authfail
 ```
 
-- **Verifiación de cuentas:** como último paso, debemos indicar este módulo en la configuración de las cuentas. Aquí, este módulo se encargará del manejo de bloqueo de cuentas basado en los intentos de inicio de sesión fallidos. El archivo donde hay que agregar esta configuración es `/etc/pam.d/common-account`, antes de la línea de `pam_unix.so`.
+**Verificación de cuentas:** como último paso, debemos indicar este módulo en la configuración de las cuentas. Aquí, este módulo se encargará del manejo de bloqueo de cuentas basado en los intentos de inicio de sesión fallidos. El archivo donde hay que agregar esta configuración es `/etc/pam.d/common-account`, antes de la línea de `pam_unix.so`.
 ```bash
 account  required       pam_faillock.so
 ```
 
-## 3. Actualiaciones automáticas
-Uno de los aspectos más importantes relativos a la seguridad es el de mantener nuestro sistema constántemente actualizado, especialmente cuando se trata de parches de seguridad. Por este motivo, se va automatizar la descarga e instalación de las actualizaciones de seguridad de forma desatendida. Para esta tarea se hará uso del paquete `unattended-upgrades`.
+## 3. Actualizaciones automáticas
+Uno de los aspectos más importantes relativos a la seguridad es el de mantener nuestro sistema constantemente actualizado, especialmente cuando se trata de parches de seguridad. Por este motivo, se va a automatizar la descarga e instalación de las actualizaciones de seguridad de forma desatendida. Para esta tarea se hará uso del paquete `unattended-upgrades`.
 
 Una vez instalado el paquete, se nos habilitarán varios archivos en `/etc/apt/apt.conf.d`. Concretamente, en el archivo `50unnatended-upgrades` vamos a encontrar la configuración de los paquetes que deseamos trackear de forma automática. Aquí no debemos hacer nada, ya que por defecto solo se seleccionan los relativos a las actualizaciones de seguridad.
 ```bash
@@ -179,17 +181,17 @@ Unattended-Upgrade::Allowed-Origins {
 };
 ```
 
-Además del archivo anterior, también debemos agregar la siguietne configuración al archivo `/etc/pam/pam.conf.d/20auto-upgrades`, el cual contiene la información sobre si se van a 
+Además del archivo anterior, también debemos agregar la siguiente configuración al archivo `/etc/pam/pam.conf.d/20auto-upgrades`, el cual contiene la información sobre si se van a actualizar los repositorios, descargar los paquetes, instalarlos y el período de purga de paquetes o dependencias huérfanas.
 ```bash
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Download-Upgradeable-Packages "1";
 APT::Periodic::AutocleanInterval "7";
-APT::Periodic::Unattended-Upgrade "1"
+APT::Periodic::Unattended-Upgrade "1";
 ```
 
 La primera línea indica que deben actualizarse las listas de repositorios, la segunda línea que se deben descargar las actualizaciones, la cuarta que deben instalarse sin atención del usuario y la tercera que cada 7 días debe realizares una limpieza automática de paquetes (`autoremove`).
 
-Aunque las actualizaciones se realizan de forma automática, algunas de ellas requieren de reiniciar el servidor para poder aplicarse. No obstante, como estamos administrando un servidor web para el cual no se ha configurado ningún tipo de redundancia, delegar la tarea de reiniciar el srevidor de forma automática no se contempla. De modo que el administrador será el encargado de reiniciarlo cuando considere oportuno.
+Aunque las actualizaciones se realizan de forma automática, algunas de ellas requieren de reiniciar el servidor para poder aplicarse. No obstante, como estamos administrando un servidor web para el cual no se ha configurado ningún tipo de redundancia, delegar la tarea de reiniciar el servidor de forma automática no se contempla. De modo que el administrador será el encargado de reiniciarlo cuando considere oportuno.
 
 ## 4. Análisis activo
 En esta sección se configurarán herramientas de escaneo activas para la detección de malware y virus. Como antivirus se ha elegido ClamAV por ser una alternativa gratuita para linux y a la vez bastante popular. Como herramienta para la detección de rootkits se empleará Rootkit Hunter.
@@ -208,12 +210,11 @@ Para realizar la configuración del servicio, se modificará el archivo `/etc/ss
 ```bash
 # Cambiaremos el puerto por defecto (22) por otro puerto poco conocido. Esto
 # dificultará a los bots de la red, así como a otros atacantes, detectar la 
-# existencia de nuestro servicio SSH y que intenten explotarlo. Este cambio lo 
-# realizamos en la siguiente línea del archivo.
+# existencia de nuestro servicio SSH y que intenten explotarlo.
 Port 20222
 
 # Inhabilitamos el acceso con root (aunque esta cuenta ya esté deshabilitada).
-# Para tareas de admistración conectarse con usuario sin privilegios y luego sudo.
+# Para tareas de administración conectarse con usuario sin privilegios y luego sudo.
 PermitRootLogin no
 
 # Limitamos los intentos de inicio de sesión a 3 antes de que el servidor cierre
@@ -244,7 +245,7 @@ GatewayPorts no
 PrintLastLog no
 
 # Evitamos que el servidor envíe peticiones KeepAlive para mantener las sesiones
-# activas. Esto puede ayudar ligreamente a prevenir algunos intentos de spoofing.
+# activas. Esto puede ayudar ligeramente a prevenir algunos intentos de spoofing.
 TCPKeepAlive no
 
 # Activamos la visualización del motd que habíamos configurado para mostrar las 
@@ -253,10 +254,10 @@ PrintMotd yes
 ```
 Esta parte es compleja de automatizar en Docker debido a la necesidad de tener que generar las claves públicas en los clientes que tendrán acceso al servicio SSH. Por este motivo, para el despliegue se dejará habilitada la opción de autenticación con usuario y contraseña y, una vez generadas y copiadas las claves públicas al servidor, se deberá desactivar esta opción, tal y como se muestra en el ejemplo anterior.
 
-## 7. Firewall interno
+## 7. Firewall interno del servidor
 Por último, y a pesar de que en la topología donde se implanta este servidor ya existe un firewall dedicado que bloquea todas las conexiones indeseadas, se va a agregar una pequeña regla de firewall para bloquear todo el tráfico entrante al servicio SSH que no pertenezca a la intranet. De este modo obligamos a que un usuario deba conectarse desde dentro de la red, o a través de una VPN, aumentando la seguridad. Para ello, usaremos el firewall UFW.
 
-En resument, se bloqueará todo el tráfico excepto el dirigido al servicio web (desde cualquier origen) y el dirigido al servicio SSH desde la intranet.
+En resumen, se bloqueará todo el tráfico excepto el dirigido al servicio web (desde cualquier origen) y el dirigido al servicio SSH desde la intranet.
 
 ```bash
 sudo ufw enable
@@ -266,13 +267,14 @@ sudo ufw allow 443
 sudo ufw allow from 172.16.0.0/16 to any port 20222 
 ```
 
-## 8. Banners se seguridad
+## 8. Banners de seguridad
 Se conoce que dentro de la cadena de seguridad informática, el usuario suele ser el eslabón más débil, debido generalmente a su desconocimiento y falta de preparación. Para tratar de mitigar en cierta medida este hecho, resulta de interés mostrar al usuario algunos tips de buenas prácticas a la hora de trabajar con un sistema informático.
 
-Para mostrar estos tips de seguridad, vamos a hacer uso del archivo `/etc/motd`, el cual no existirá por defecto, pero lo podemos crear y su contenido se mostrará cada vez que el usuario inicie sesión de forma remota. Como este servidor será accedido esencialemente para la gestión del servicio web de forma remota, los tips irán dirigidos al engargado de gestionar el servicio web. Los tips que se mostrarán serán:
+Para mostrar estos tips de seguridad, vamos a hacer uso del archivo `/etc/motd`, el cual no existirá por defecto, pero lo podemos crear y su contenido se mostrará cada vez que el usuario inicie sesión de forma remota. Como este servidor será accedido esencialmente para la gestión del servicio web de forma remota, los tips irán dirigidos al encargado de gestionar el servicio web. Los tips que se mostrarán serán:
 
 1. Si abandonas momentáneamente tu puesto de trabajo, no olvides bloquear la sesión.
-2. No debes compartir con nadie la contraseña de acceso y debes cambiarla con frecuencia, o inmediatamente si tienes la sospecha de que ha sido filtrada.
-3. No debes descargar nada ni acceder a la red para realizar consultas desde este servidor.
+2. No compartas con nadie la contraseña de acceso y cámbiala con frecuencia, o inmediatamente si tienes la sospecha de que ha sido filtrada.
+3. No descargues nada ni accedas a la red para realizar consultas desde este servidor.
 4. Si detectas cualquier anomalía en el sistema, contacta inmediatamente con el administrador.
 5. Si sospechas que tu equipo ha podido ser infectado con un virus, no trates de conectarte a la red ni acceder al servidor y contacta inmediatamente con el administrador.
+
