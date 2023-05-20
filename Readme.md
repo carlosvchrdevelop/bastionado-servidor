@@ -56,7 +56,7 @@ echo 'Cmnd_Alias WEBADMIN_SERVICES = /usr/sbin/service nginx start, /usr/sbin/se
  /usr/sbin/service nginx stop' > /etc/sudoers.d/webadmin-policies
 echo '%webadmin ALL=(ALL) WEBADMIN_SERVICES' >> /etc/sudoers.d/webadmin-policies
 ```
----
+
 ## 2. Políticas de seguridad y caducidad de cuentas
 En esta sección se configurarán políticas de contraseñas seguras mediante el módulo `PAM` (*Pluggable Authenticaiton Module*) llamado `pwquality`. Por otro lado, la configuración de la caducidad de las cuentas se configurará en el fichero `/etc/login.defs` del sistema operativo. Por último, el bloqueo automático de cuentas se realizarán con otro módulo `PAM` llamado `faillock`.
 
@@ -273,7 +273,7 @@ Próximamente...
 ## 6. Hardening SSH
 Para proveer acceso remoto al servidor, se va a hacer uso del servidor `openssh`. Por defecto, este servidor ofrece unas políticas no demasiado seguras, por lo que se va a realizar una configuración del servicio para garantizar una mayor seguridad.
 
-Entre otras cosas, las medidas que se van a aplicar van a ser la de cambiar el puerto por defecto, activar la autenticación únicamente con clave pública, prohibir el acceso root directamente, limitar el número de sesiones simultáneas y deeshabilitar todos las características que no necesitamos.
+Entre otras cosas, las medidas que se van a aplicar van a ser la de cambiar el puerto por defecto, activar la autenticación únicamente con clave pública, prohibir el acceso root directamente, limitar el número de sesiones simultáneas y deeshabilitar todas las características que no necesitamos.
 
 Para realizar la configuración del servicio, se modificará el archivo `/etc/ssh/sshd_config`. Sobre este archivo realizaremos los siguientes cambios.
 ```bash
@@ -288,7 +288,7 @@ PermitRootLogin no
 
 # Limitamos los intentos de inicio de sesión a 3 antes de que el servidor cierre
 # la conexión. Tras ello, el usuario deberá establecer nuevamente la conexión.
-# Recordar que tras 15 intentos, la cuenta se bloqueará (faillock).
+# Recordar que, tras 15 intentos, la cuenta se bloqueará (faillock).
 MaxAuthTries 3
 
 # Limitamos el número máximo de conexiones simultáneas en el servidor a 5 para
@@ -343,7 +343,7 @@ SSHD: 172.16.0.0/12
 ```
 
 ## 8. Banners de seguridad
-Se conoce que dentro de la cadena de seguridad informática, el usuario suele ser el eslabón más débil, debido generalmente a su desconocimiento y falta de preparación. Para tratar de mitigar en cierta medida este hecho, resulta de interés mostrar al usuario algunos tips de buenas prácticas a la hora de trabajar con un sistema informático.
+Se conoce que, dentro de la cadena de seguridad informática, el usuario suele ser el eslabón más débil, debido generalmente a su desconocimiento y falta de preparación. Para tratar de mitigar en cierta medida este hecho, resulta de interés mostrar al usuario algunos tips de buenas prácticas a la hora de trabajar con un sistema informático.
 
 Para mostrar estos tips de seguridad, vamos a hacer uso del archivo `/etc/ssh/sshd-banner`, el cual no existirá por defecto, pero lo podemos crear y su contenido se mostrará cada vez que el usuario inicie sesión de forma remota. Como este servidor será accedido esencialmente para la gestión del servicio web de forma remota, los tips irán dirigidos al encargado de gestionar el servicio web. Los tips que se mostrarán serán:
 

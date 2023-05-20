@@ -41,8 +41,8 @@ COPY ./setup/config_files/sshd_config /etc/ssh/sshd_config
 COPY ./setup/config_files/sshd-banner /etc/ssh/sshd-banner
 
 # Configuramos los TCP Wrappers
-RUN echo "SSHD: ALL" >> /etc/hosts.deny
-RUN echo "SSHD: 172.16.0.0/12" >> /etc/hosts.allow
+RUN echo -e "SSHD: ALL\n" >> /etc/hosts.deny
+RUN echo -e "SSHD: 172.16.0.0/12\n" >> /etc/hosts.allow
 
 # Borramos los scripts temporales
 RUN rm -r /setup
