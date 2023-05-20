@@ -27,7 +27,6 @@ RUN chmod 644 /etc/pam.d/common-account /etc/pam.d/common-auth /etc/login.defs \
 # Configuraciones actualizaciones de seguridad
 COPY ./setup/config_files/20auto-upgrades /etc/apt/apt.conf.d/20auto-upgrades
 
-
 # Configuramos el antirootkit
 COPY ./setup/config_files/rkhunter.conf /etc/rkhunter.conf
 
@@ -45,6 +44,5 @@ RUN /setup/gestion_cuentas
 # Borramos los scripts temporales
 RUN rm -r /setup
 
-
 # Lanzamos los servicios de nginx y ssh
-CMD ["bash", "-c", "/etc/init.d/nginx start && /etc/init.d/ssh start && /etc/init.d/maldet start"]
+CMD ["bash", "-c", "/etc/init.d/ssh start && /etc/init.d/nginx start"]
