@@ -1,8 +1,57 @@
 version: '3'
+
 services:
-  web:
-    image: chrdevelop/hardened-webserver:0.1.0
-    container_name: webserver
-    ports:
-      - "80:80"
-      - "20222:20222"
+    web:
+        build:
+            context: ./webserver
+            dockerfile: Dockerfile
+        container_name: webserver
+        ports:
+            - '80:80'
+            - '20222:20222'
+        restart: always
+        stdin_open: true
+        tty: true
+        networks:
+            red_lan_dmz:
+                ipv4_address: 172.16.0.11
+        hostname: webserver
+
+    external_firewall:
+        build:
+            context: ./external_firewall
+            dockerfile: Dockerfile
+        container_name: external_firewall
+        restart: always
+        stdin_open: true
+        tty: true
+        networks:
+            red_lan_dmz:
+                ipv4_address: 172.16.0.10
+            red_wan:
+                ipv4_address: 192.168.1.10
+        hostname: external_firewall
+
+    external_client:
+        image: alpine:3.18
+        container_name: client
+        stdin_open: true
+        tty: true
+        networks:
+            red_wan:
+                ipv4_address: 192.168.1.11
+        hostname: client
+
+networks:
+    red_lan_dmz:
+        ipam:
+            config:
+                - subnet: 172.16.0.0/16
+    red_lan:
+        ipam:
+            config:
+                - subnet: 172.17.0.0/16
+    red_wan:
+        ipam:
+            config:
+                - subnet: 192.168.1.0/24
