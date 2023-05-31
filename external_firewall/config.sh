@@ -16,7 +16,7 @@ iptables -A FORWARD -i eth1 -o eth0 -m conntrack --ctstate RELATED,ESTABLISHED -
 # Habilitar NAT para redirigir el tráfico desde la red local hacia Internet
 iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
 
-# Permitimos hacia el servidor SSH (por puerto no estandar 2202), http y https
+# Permitimos hacia el servidor SSH (por puerto no estandar 20222), http y https
 iptables -A FORWARD -p tcp --dport 20222 -j ACCEPT
 iptables -A FORWARD -p tcp --dport 80 -j ACCEPT
 iptables -A FORWARD -p tcp --dport 443 -j ACCEPT
